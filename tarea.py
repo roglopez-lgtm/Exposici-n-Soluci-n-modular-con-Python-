@@ -7,10 +7,18 @@ def leer_cliente():
 
 def leer_productos():
     os.system('cls')
-    precio = float(input("Ingrese el precio del producto: "))
-    cantidad = int(input("Ingrese la cantidad: "))
-    porcentaje = float(input("Ingrese el porcentaje de descuento: "))
-    return precio, cantidad, porcentaje
+    n = int(input("¿Cuántos productos desea registrar?: "))
+    
+    lista_productos = []
+    for i in range(n):
+        print(f"\n--- Producto {i+1} ---")
+        precio = float(input("Ingrese el precio del producto: "))
+        cantidad = int(input("Ingrese la cantidad: "))
+        porcentaje = float(input("Ingrese el porcentaje de descuento (%): "))
+        lista_productos.append((precio, cantidad, porcentaje))
+        
+    impuesto = float(input("\nIngrese el porcentaje de impuesto (IVA): "))
+    return lista_productos, impuesto
 
 def calcular_subtotal(cantidad, precio):
     subtotal = cantidad * precio
@@ -28,43 +36,54 @@ def calcular_total_impuesto(subtotal, impuesto):
     total_impuesto = subtotal * (impuesto / 100)
     return total_impuesto
 
-def calcular_total(cantidad, precio, porcentaje, impuesto):
-    subtotal = calcular_subtotal(cantidad, precio)
-    # Usando calcular_total_productos() como indica el diagrama
-    total_prod = calcular_total_productos(cantidad, precio)
-    descuento = calcular_descuento(subtotal, porcentaje)
-    iva = calcular_total_impuesto(subtotal, impuesto)
-    total = (subtotal - descuento) + iva
-    return subtotal, descuento, iva, total
+def calcular_total(lista_productos, impuesto):
+    subtotal_general = 0
+    descuento_general = 0
+    
+    for precio, cantidad, porcentaje in lista_productos:
+        # Usando las funciones del diagrama
+        sub_prod = calcular_subtotal(cantidad, precio)
+        # O utilizando calcular_total_productos según el diagrama:
+        # sub_prod = calcular_total_productos(cantidad, precio)
+        
+        desc = calcular_descuento(sub_prod, porcentaje)
+        
+        subtotal_general += sub_prod
+        descuento_general += desc
+        
+    iva = calcular_total_impuesto(subtotal_general, impuesto)
+    total = (subtotal_general - descuento_general) + iva
+    return subtotal_general, descuento_general, iva, total
 
-def mostrar_factura(nombre, cantidad, precio, porcentaje, impuesto, subtotal, descuento, iva, total):
+def mostrar_factura(nombre, lista_productos, impuesto, subtotal, descuento, iva, total):
     os.system('cls')
-    print("="*45)
-    print("               FACTURA                  ")
-    print("="*45)
+    print("="*50)
+    print("                 FACTURA GENERAL                ")
+    print("="*50)
     print(f"Cliente: {nombre}")
-    print(f"Cantidad: {cantidad}")
-    print(f"Precio unitario: ${precio:.2f}")
-    print(f"Porcentaje de descuento: {porcentaje}%")
-    print(f"Porcentaje de impuesto (IVA): {impuesto}%")
-    print("-" * 45)
-    print(f"Subtotal: ${subtotal:.2f}")
-    print(f"Descuento: -${descuento:.2f}")
-    print(f"IVA: +${iva:.2f}")
-    print(f"TOTAL A PAGAR: ${total:.2f}")
-    print("="*45)
+    print("-" * 50)
+    print(f"{'Cant':<6} | {'Precio':<10} | {'Subtotal':<10}")
+    print("-" * 50)
+    
+    for precio, cantidad, porcentaje in lista_productos:
+        sub_prod = calcular_total_productos(cantidad, precio)
+        print(f"{cantidad:<6} | ${precio:<9.2f} | ${sub_prod:<9.2f}")
+        
+    print("-" * 50)
+    print(f"Subtotal acumulado:     ${subtotal:.2f}")
+    print(f"Descuento total:       -${descuento:.2f}")
+    print(f"IVA ({impuesto}%):          +${iva:.2f}")
+    print(f"TOTAL A PAGAR:         ${total:.2f}")
+    print("="*50)
 
 def main():
     os.system('cls')
     nombre = leer_cliente()
-    precio, cantidad, porcentaje = leer_productos()
+    lista_productos, impuesto = leer_productos()
     
-    # Parámetro de impuesto necesario para la factura final
-    impuesto = float(input("Ingrese el porcentaje de impuesto (IVA): "))
+    subtotal, descuento, iva, total = calcular_total(lista_productos, impuesto)
     
-    subtotal, descuento, iva, total = calcular_total(cantidad, precio, porcentaje, impuesto)
-    
-    mostrar_factura(nombre, cantidad, precio, porcentaje, impuesto, subtotal, descuento, iva, total)
+    mostrar_factura(nombre, lista_productos, impuesto, subtotal, descuento, iva, total)
 
 if __name__ == "__main__":
     main()
